@@ -4,33 +4,54 @@ const current_page = window.location.pathname;
 // TODO: content script
 
 function loadAssignmentButtons() {
-  const row = document.getElementsByClassName("ig-row__layout");
-  console.log(row);
-  const TITLEREGEX = /Assignments:\s*(.*?)\s/;
-  const courseTitle = document
-    .querySelector("title")
-    .innerHTML.match(TITLEREGEX);
-  for (let i = 0; i < row.length; i++) {
-    console.log("row" + i);
-    const newElement = document.createElement("div");
-    newElement.innerHTML = `<button class="btn">Add <img  width="20" height="20" src="${chrome.runtime.getURL(
-      "todo.png"
-    )}" alt="todo" class="btn-icon"></button>`;
-    row[i].appendChild(newElement);
-    newElement.querySelector(".btn").addEventListener("click", function () {
+  try {
+    const row = document.getElementsByClassName("ig-row__layout");
+    console.log(row);
+    const TITLEREGEX = /Assignments:\s*(.*?)\s/;
+    const courseTitle = document
+      .querySelector("title")
+      .innerHTML.match(TITLEREGEX);
+    for (let i = 0; i < row.length; i++) {
+      // Element Selectors
       const infoElement = row[i].querySelector(".ig-info");
       const assignmentTitleElement =
         infoElement.getElementsByClassName("ig-title");
       const dateDueElement = infoElement.querySelector(
         "span[data-html-tooltip-title]"
       );
-      const dueDate = dateDueElement
-        ? dateDueElement.getAttribute("data-html-tooltip-title")
-        : "";
-      const assignmentTitle = assignmentTitleElement[0].innerHTML.trim();
-      const moduleCode = courseTitle[1];
-      addTask(dueDate, assignmentTitle, moduleCode);
-    });
+      const newElement = createElement(
+        "div",
+        `<button title="Add to Microsoft To-Do List" class="btn">Add <img  width="20" height="20" src="${chrome.runtime.getURL(
+          "todo.png"
+        )}" alt="todo" class="btn-icon"></button>`
+      );
+
+      // Check if the button was clicked before
+      // console.log(assignmentTitleElement[0].innerHTML.trim());
+      // if (localStorage.getItem(assignmentTitleElement[0].innerHTML.trim())) {
+      //   newElement.querySelector(".btn").disabled = true;
+      //   newElement.querySelector(".btn").innerText = "Added";
+      // }
+      row[i].appendChild(newElement);
+
+      // Add event listener to button click
+      newElement.querySelector(".btn").addEventListener("click", function () {
+        const dueDate = dateDueElement
+          ? dateDueElement.getAttribute("data-html-tooltip-title")
+          : "";
+        const assignmentTitle = assignmentTitleElement[0].innerHTML.trim();
+        const moduleCode = courseTitle[1];
+        if (addTask(dueDate, assignmentTitle, moduleCode)) {
+          this.disabled = true;
+          this.innerText = "Added";
+          // chrome.storage.local.set({ assignmentTitle });
+        } else {
+          alert("Failed to add task");
+        }
+      });
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
@@ -47,7 +68,7 @@ window.addEventListener("load", function () {
             console.log("Couldn't find buttons, adding them");
             loadAssignmentButtons();
           }
-        }, 2000);
+        }, 1000);
       }
     });
   });
@@ -57,3 +78,9 @@ window.addEventListener("load", function () {
     subtree: true,
   });
 });
+
+function createElement(type, html) {
+  const newElement = document.createElement(type);
+  newElement.innerHTML = html;
+  return newElement;
+}

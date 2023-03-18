@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./options.css";
+
 export const handleLogin = (isInteractiveMode: boolean) => {
   chrome.identity.launchWebAuthFlow(
     {
