@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./options.css";
-import { getAccessToken } from "../util/api";
 
 const App: React.FC<{}> = () => {
   interface TaskList {
     id: string;
     displayName: string;
   }
+  const [tasklists, setTasklists] = useState([]);
 
   const handleLogin = () => {
     chrome.identity.launchWebAuthFlow(
@@ -25,64 +25,66 @@ const App: React.FC<{}> = () => {
         const params = new URLSearchParams(url.hash.slice(1)); // extract parameters from the URL hash
         const accessToken = params.get("access_token"); // extract the access token value
         console.log(accessToken);
+        chrome.storage.local.set({ token: accessToken });
       }
     );
   };
   // function to fetch task lists
-  async function getTaskLists(): Promise<TaskList[]> {
-    const token = chrome.storage.local.get("token");
+  async function getTaskLists() {
+    const token = await new Promise((resolve) => {
+      chrome.storage.local.get("token", (result) => {
+        resolve(result.token);
+      });
+    });
+    console.log(token);
     if (token != null) {
+      console.log("getting tasks");
       const response = await fetch(
         "https://graph.microsoft.com/v1.0/me/todo/lists",
         {
-          method: "POST",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       );
-      const data = await response.json();
-      const taskLists = data.value.map((list: any) => {
-        return { id: list.id, displayName: list.displayName };
-      });
-      return taskLists;
+      if (response.ok) {
+        const data = await response.json();
+        console.log("data: " + data);
+        const taskLists = data.value.map((list: any) => {
+          return { id: list.id, displayName: list.displayName };
+        });
+        setTasklists(taskLists);
+      } else {
+        console.log("Error fetching task lists");
+      }
     } else {
       console.log("No token found");
-      return [];
     }
   }
 
-  // save the selected task list id to chrome storage
-  function saveSelectedTaskListId(taskListId: string): void {
-    chrome.storage.sync.set({ selectedTaskListId: taskListId });
-  }
-
-  // populate dropdown with task lists
-  async function populateTaskListDropdown(): Promise<void> {
-    const taskLists = await getTaskLists();
-    const select = document.getElementById(
-      "tasklist-dropdown"
-    ) as HTMLSelectElement;
-    taskLists.forEach((list) => {
-      const option = document.createElement("option");
-      option.value = list.id;
-      option.text = list.displayName;
-      select.add(option);
-    });
-    // add event listener to save selected task list id to chrome storage on change
-    select.addEventListener("change", (event) => {
-      const selectedTaskListId = (event.target as HTMLSelectElement).value;
-      saveSelectedTaskListId(selectedTaskListId);
-    });
-  }
-
-  // call function to populate task list dropdown when extension popup is opened
-  document.addEventListener("DOMContentLoaded", populateTaskListDropdown);
+  useEffect(() => {
+    getTaskLists();
+  }, []);
   return (
     <div>
       <h1>Configuration Settings</h1>
       <button onClick={handleLogin}>Sign in to Microsoft To-Do</button>
+      {tasklists.length > 0 ? (
+        <div>
+          <h2>Select a Task List:</h2>
+          <select>
+            {tasklists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <p>No tasklists available.</p>
+      )}
     </div>
   );
 };
