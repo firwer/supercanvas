@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./options.css";
-
+export const handleLogin = (isInteractiveMode: boolean) => {
+  chrome.identity.launchWebAuthFlow(
+    {
+      url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?
+    client_id=6f4898fb-80f4-4b0b-af04-b97969c5ed40
+    &redirect_uri=${chrome.identity.getRedirectURL()}
+    &response_type=token
+    &response_mode=fragment
+    &scope=Tasks.ReadWrite offline_access`,
+      interactive: isInteractiveMode,
+    },
+    function (response) {
+      const url = new URL(response);
+      const params = new URLSearchParams(url.hash.slice(1)); // extract parameters from the URL hash
+      const accessToken = params.get("access_token"); // extract the access token value
+      console.log(accessToken);
+      chrome.storage.local.set({ token: accessToken });
+    }
+  );
+};
 const App: React.FC<{}> = () => {
-  interface TaskList {
-    id: string;
-    displayName: string;
-  }
   const [tasklists, setTasklists] = useState([]);
-
-  const handleLogin = () => {
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?
-      client_id=6f4898fb-80f4-4b0b-af04-b97969c5ed40
-      &redirect_uri=${chrome.identity.getRedirectURL()}
-      &response_type=token
-      &response_mode=fragment
-      &scope=Tasks.ReadWrite offline_access`,
-        interactive: true,
-      },
-      function (response) {
-        const url = new URL(response);
-        const params = new URLSearchParams(url.hash.slice(1)); // extract parameters from the URL hash
-        const accessToken = params.get("access_token"); // extract the access token value
-        console.log(accessToken);
-        chrome.storage.local.set({ token: accessToken });
-      }
-    );
+  const handleSelectedOption = (event: any) => {
+    chrome.storage.local.set({ selectedTaskList: event.target.value });
   };
+
   // function to fetch task lists
   async function getTaskLists() {
     const token = await new Promise((resolve) => {
@@ -38,7 +36,6 @@ const App: React.FC<{}> = () => {
     });
     console.log(token);
     if (token != null) {
-      console.log("getting tasks");
       const response = await fetch(
         "https://graph.microsoft.com/v1.0/me/todo/lists",
         {
@@ -70,11 +67,13 @@ const App: React.FC<{}> = () => {
   return (
     <div>
       <h1>Configuration Settings</h1>
-      <button onClick={handleLogin}>Sign in to Microsoft To-Do</button>
+      <button onClick={() => handleLogin(true)}>
+        Sign in to Microsoft To-Do
+      </button>
       {tasklists.length > 0 ? (
         <div>
           <h2>Select a Task List:</h2>
-          <select>
+          <select onChange={handleSelectedOption}>
             {tasklists.map((list) => (
               <option key={list.id} value={list.id}>
                 {list.displayName}

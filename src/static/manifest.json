@@ -20,8 +20,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*/*"],
-      "js": ["contentScript.js"]
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["todo.png"]
     }
   ]
 }

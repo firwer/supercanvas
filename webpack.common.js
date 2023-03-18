@@ -52,7 +52,7 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks(chunk) {
-        return chunk.name !== "background";
+        return chunk.name !== "contentScript" && chunk.name !== "background";
       },
     },
   },
