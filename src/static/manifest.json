@@ -13,7 +13,7 @@
     "default_title": "Super Canvas Extension",
     "default_icon": "icon.png"
   },
-  "permissions": ["storage", "identity"],
+  "permissions": ["storage", "identity", "tabs"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
@@ -28,7 +28,7 @@
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
-      "resources": ["todo.png"]
+      "resources": ["todo.png", "../contentScript/contentScript.css"]
     }
   ]
 }

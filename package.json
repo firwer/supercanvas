@@ -26,6 +26,10 @@
     "webpack-merge": "^5.7.3"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.11",
+    "@mui/material": "^5.11.14",
     "moment-timezone": "^0.5.41"
   }
 }
