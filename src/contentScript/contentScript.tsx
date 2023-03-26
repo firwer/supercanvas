@@ -13,9 +13,15 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Select,
   TextField,
 } from "@mui/material";
+import { Folder } from "@mui/icons-material";
 const domain = window.location.origin;
 const current_page = window.location.pathname;
 // TODO: content script
@@ -47,6 +53,8 @@ function DialogBox({ courseId }) {
   const [files, setFiles] = React.useState([]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
+  const [selectedFolder, setSelectedFolder] = React.useState("");
+  const [folders, setFolders] = React.useState([]);
 
   React.useEffect(() => {
     async function fetchFiles() {
@@ -54,8 +62,22 @@ function DialogBox({ courseId }) {
         `/api/v1/courses/${courseId}/files?per_page=100`
       );
       const data = await response.json();
+      const folderIds = [...new Set(data.map((file) => file.folder_id))];
       setFiles(data);
       setIsLoading(false);
+      fetchFolders(folderIds);
+    }
+    async function fetchFolders(folderIds) {
+      const response = await fetch(
+        `/api/v1/courses/${courseId}/folders?per_page=100`
+      );
+      const allFolders = await response.json();
+      const filteredFolders = allFolders
+        .filter((folder) => folder.files_count !== 0)
+        .filter((folder) => folder.hidden_for_user !== true)
+        .filter((folder) => folderIds.includes(folder.id));
+
+      setFolders(filteredFolders);
     }
 
     fetchFiles();
@@ -69,12 +91,28 @@ function DialogBox({ courseId }) {
     setSearchQuery(event.target.value);
   };
 
-  const filteredFiles = files.filter((file) =>
-    file.display_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSelectFolder = (event) => {
+    console.log("Selected Folder: " + event.target.value);
+    setSelectedFolder(event.target.value);
+  };
+
+  const filteredFiles = React.useMemo(() => {
+    if (selectedFolder !== "") {
+      return files.filter(
+        (file) =>
+          file.display_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+          file.folder_id === selectedFolder
+      );
+    } else {
+      return files.filter((file) =>
+        file.display_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+  }, [files, searchQuery, selectedFolder]);
   const handlePreviewClick = (id) => {
     window.open(`https://canvas.nus.edu.sg/files/${id}`, "_blank");
   };
+
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle sx={{ width: "500px", padding: "0px" }}>
@@ -91,6 +129,26 @@ function DialogBox({ courseId }) {
             border: "none",
           }}
         />
+        <FormControl sx={{ minWidth: 120 }}>
+          <Select
+            placeholder="Folder"
+            sx={{ width: "100%", margin: "0px 10px" }}
+            labelId="folder-select-label"
+            value={selectedFolder}
+            onChange={handleSelectFolder}
+          >
+            <MenuItem value="">All Folders</MenuItem>
+            {folders.map((folder) => (
+              <MenuItem
+                sx={{ justifyContent: "space-between" }}
+                key={folder.id}
+                value={folder.id}
+              >
+                {folder.full_name.replace("course files/", "")}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </DialogTitle>
       <DialogContent
         sx={{ alignItems: "center", justifyContent: "center", height: "500px" }}
@@ -148,7 +206,6 @@ function DialogBox({ courseId }) {
 function loadAssignmentButtons() {
   try {
     const row = document.getElementsByClassName("ig-row__layout");
-    console.log(row);
     const TITLEREGEX = /Assignments:\s*(.*?)\s/;
     const courseTitle = document
       .querySelector("title")
