@@ -1,4 +1,4 @@
-.search-btn {
+.course-search-btn {
   display: flex;
   position: absolute;
   background: rgb(255, 255, 255, 0.5);
@@ -11,6 +11,23 @@
   text-align: center;
   align-items: center;
   justify-content: center;
+}
+
+.general-search-btn {
+  display: flex;
+  width: 200px;
+  height: 35px;
+  align-items: center;
+  padding: 10px;
+  background: #777;
+  color: #ebedf0;
+  border-radius: 40px;
+  cursor: pointer;
+  border: 3px solid #777;
+}
+
+.general-search-btn:hover {
+  border: 3px solid #ebedf0;
 }
 
 .search-btn:hover {

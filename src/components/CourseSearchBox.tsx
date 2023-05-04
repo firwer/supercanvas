@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
-import "./SearchBox.css";
+import "./CourseSearchBox.css";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import ClearIcon from "@mui/icons-material/Clear";
 

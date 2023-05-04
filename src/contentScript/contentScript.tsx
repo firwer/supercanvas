@@ -1,6 +1,6 @@
 import SearchIcon from "@mui/icons-material/Search";
 import "./contentScript.css";
-import SearchBox from "../components/SearchBox";
+import SearchBox from "../components/CourseSearchBox";
 import ReactDOM from "react-dom";
 
 import React, { useState } from "react";
@@ -10,9 +10,12 @@ const current_page = window.location.pathname;
 
 function loadQuickSearch() {
   // Find the header element and append the search div to it
+  const dashboardHeader = document.querySelector(".fOyUs_bGBk");
   const headers = document.querySelectorAll(".ic-DashboardCard__header");
+  const threeDots = dashboardHeader.querySelector(".dJCgj_bGBk");
+
   headers.forEach((header) => {
-    const newElement = makeElement("div", "search-btn", header, "Test");
+    const newElement = makeElement("div", "course-search-btn", header, "Test");
     const iconButton = <SearchIcon sx={{ width: "80px", height: "80px" }} />;
     ReactDOM.render(iconButton, newElement);
     header.appendChild(newElement);
@@ -27,6 +30,15 @@ function loadQuickSearch() {
       ReactDOM.render(<SearchBox courseId={id} />, dialogContainer);
     });
   });
+  const iconButton = <SearchIcon sx={{ width: "25px", height: "25px" }} />;
+  const searchBar = makeElement(
+    "div",
+    "general-search-btn",
+    dashboardHeader,
+    "Search All Files..."
+  );
+  //searchBar.appendChild(iconButton);
+  dashboardHeader.insertBefore(searchBar, threeDots);
 }
 
 window.addEventListener("load", function () {
