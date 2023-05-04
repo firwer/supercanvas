@@ -10,46 +10,12 @@ import {
   IconButton,
   MenuItem,
   Select,
-  Tab,
-  Tabs,
   Typography,
 } from "@mui/material";
 import React from "react";
 import "./SearchBox.css";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
+import ClearIcon from "@mui/icons-material/Clear";
 
 const SearchBox = ({ courseId }) => {
   const [open, setOpen] = React.useState(true);
@@ -58,7 +24,6 @@ const SearchBox = ({ courseId }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [selectedFolder, setSelectedFolder] = React.useState("");
   const [folders, setFolders] = React.useState([]);
-  const [value, setValue] = React.useState(0);
 
   React.useEffect(() => {
     async function fetchFiles() {
@@ -66,7 +31,11 @@ const SearchBox = ({ courseId }) => {
         `/api/v1/courses/${courseId}/files?per_page=100`
       );
       const data = await response.json();
-      const folderIds = [...new Set(data.map((file) => file.folder_id))];
+      const folderIds = [
+        ...new Set(
+          data.filter((file) => file.url !== "").map((file) => file.folder_id)
+        ),
+      ];
       setFiles(data);
       setIsLoading(false);
       fetchFolders(folderIds);
@@ -87,6 +56,7 @@ const SearchBox = ({ courseId }) => {
     fetchFiles();
   }, [courseId]);
 
+  // Calculate the elapsed time since the file was uploaded
   const calculateElapsedTime = (created_at) => {
     const currentDate = new Date();
     const createdAtDate = new Date(created_at);
@@ -109,10 +79,6 @@ const SearchBox = ({ courseId }) => {
     } else {
       return `Added ${Math.round(monthsElapsed)} month(s) ago`;
     }
-  };
-
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
   };
 
   const handleClose = () => {
@@ -141,27 +107,43 @@ const SearchBox = ({ courseId }) => {
       );
     }
   }, [files, searchQuery, selectedFolder]);
+
   const handlePreviewClick = (id) => {
     window.open(`https://canvas.nus.edu.sg/files/${id}`, "_blank");
   };
-  console.log(filteredFiles);
+
   return (
     <Dialog open={open} onClose={handleClose}>
       <div style={{ borderRadius: "30px" }}>
-        <DialogTitle sx={{ width: "500px", padding: "0px" }}>
-          <input
-            value={searchQuery}
-            onChange={handleSearchInputChange}
-            type="text"
-            placeholder={`Search Module Files...`}
-            style={{
-              fontSize: "24px",
-              width: "100%",
-              height: "40px",
-              padding: "0.5rem",
-              border: "none",
-            }}
-          />
+        <DialogTitle
+          sx={{
+            width: "100%",
+            padding: "0px",
+          }}
+        >
+          <div className="searchBar">
+            <input
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              type="text"
+              placeholder={`Search Module Files...`}
+              style={{
+                fontSize: "24px",
+                width: "100%",
+                height: "40px",
+                marginBottom: "0.5rem",
+                border: "none",
+              }}
+            ></input>
+            {searchQuery != "" && (
+              <ClearIcon
+                htmlColor="#999"
+                fontSize="large"
+                sx={{ padding: "10px", cursor: "pointer" }}
+                onClick={() => setSearchQuery("")}
+              />
+            )}
+          </div>
           <FormControl sx={{ minWidth: 120 }}>
             <Select
               placeholder="Folder"
@@ -174,15 +156,22 @@ const SearchBox = ({ courseId }) => {
               <MenuItem value="">
                 <em>All Folders</em>
               </MenuItem>
-              {folders.map((folder) => (
-                <MenuItem
-                  sx={{ justifyContent: "space-between" }}
-                  key={folder.id}
-                  value={folder.id}
-                >
-                  {folder.full_name.replace("course files/", "")}
-                </MenuItem>
-              ))}
+              {folders
+                .map((f) => {
+                  console.log(f.id);
+                  return f;
+                })
+                .map((folder) => {
+                  return (
+                    <MenuItem
+                      sx={{ justifyContent: "space-between" }}
+                      key={folder.id}
+                      value={folder.id}
+                    >
+                      {folder.full_name.replace("course files/", "")}
+                    </MenuItem>
+                  );
+                })}
             </Select>
           </FormControl>
         </DialogTitle>
@@ -191,22 +180,10 @@ const SearchBox = ({ courseId }) => {
             alignItems: "center",
             justifyContent: "center",
             height: "500px",
+            minHeight: "100px",
             width: "500px",
           }}
         >
-          {/* <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs
-              value={value}
-              onChange={handleChange}
-              aria-label="basic tabs example"
-            >
-              <Tab label="All" {...a11yProps(0)} />
-              <Tab label="By Upload Time" {...a11yProps(1)} />
-            </Tabs>
-          </Box> */}
-          {/* <TabPanel value={value} index={0}> */}
-          {/* </TabPanel>
-          <TabPanel value={value} index={1}> */}
           {isLoading ? (
             <div className="spinnerBox">
               <CircularProgress thickness={10} />
@@ -223,10 +200,12 @@ const SearchBox = ({ courseId }) => {
                     const elapsedTime = calculateElapsedTime(file.created_at);
                     return (
                       <li key={index} className="itemBox">
-                        <a href={file.url} className="itemText" download>
-                          {file.display_name}
-                        </a>
                         <div className="leftpanel">
+                          <a href={file.url} className="itemText" download>
+                            {file.display_name}
+                          </a>
+                        </div>
+                        <div className="rightpanel">
                           <div className="elapsedTime">{elapsedTime}</div>
                           <IconButton
                             onClick={() => handlePreviewClick(file.id)}
@@ -244,15 +223,7 @@ const SearchBox = ({ courseId }) => {
               )}
             </ul>
           )}
-          {/* </TabPanel> */}
         </DialogContent>
-        <DialogActions
-          sx={{
-            boxShadow: "0 -1px 0 0 #e0e3e8,0 -3px 6px 0 rgba(69,98,155,0.12)",
-          }}
-        >
-          <Button onClick={handleClose}>Close</Button>
-        </DialogActions>
       </div>
     </Dialog>
   );
