@@ -10,7 +10,8 @@ So considering this, I've added a quick search feature to each module card on th
 3. Preview file
 4. Sorted by File Upload Timestamp (Latest to Earliest) 
 
-![canvasdemo](https://user-images.githubusercontent.com/7589432/236207528-96129a96-dc3c-45a6-973e-854bdb3dc4e9.gif)
+
+![canvasdemo](https://github.com/firwer/supercanvas/assets/7589432/41a20772-2e22-4086-b73b-4bbf6847a10d)
 
 ## Deadline Overview & Countdown
 
