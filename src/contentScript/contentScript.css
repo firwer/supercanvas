@@ -34,3 +34,33 @@
   background: rgb(255, 255, 255, 0.9);
   color: rgb(0, 0, 0, 0.9);
 }
+
+.supercanvas-assignment-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px;
+}
+
+.supercanvas-card-header {
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: medium;
+  font-weight: 700;
+}
+
+.supercanvas-deadline-text,
+.supercanvas-deadline-time {
+  font-size: 14px;
+}
+
+.supercanvas-deadline-countdown {
+  display: flex;
+  font-size: 14px;
+  font-weight: 700;
+  background-color: #d9d9d9;
+  border-radius: 15px;
+  padding-left: 10px;
+  padding-right: 10px;
+  align-items: center;
+  justify-content: center;
+}
