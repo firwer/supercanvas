@@ -12,6 +12,13 @@ import React from "react";
 import "./CourseSearchBox.css";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import ClearIcon from "@mui/icons-material/Clear";
+import Fuse from "fuse.js";
+
+const fuseOptions = {
+  includeScore: true,
+  keys: ["display_name"],
+  threshold: 0.3,
+};
 
 const SearchBox = ({ courseId }) => {
   const [open, setOpen] = React.useState(true);
@@ -20,6 +27,13 @@ const SearchBox = ({ courseId }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [selectedFolder, setSelectedFolder] = React.useState("");
   const [folders, setFolders] = React.useState([]);
+  const [fuse, setFuse] = React.useState(new Fuse(files, fuseOptions));
+
+  React.useEffect(() => {
+    console.log("fuse updated", files);
+    const newFuse = new Fuse(files, fuseOptions);
+    setFuse(newFuse);
+  }, [files]);
 
   React.useEffect(() => {
     async function fetchFiles() {
@@ -93,17 +107,26 @@ const SearchBox = ({ courseId }) => {
 
   const filteredFiles = React.useMemo(() => {
     if (selectedFolder !== "") {
-      return files.filter(
-        (file) =>
-          file.display_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          file.folder_id === selectedFolder
-      );
+      if (searchQuery === "") {
+        return files.filter((file) => file.folder_id === selectedFolder);
+      }
+      console.log("selectedFolder", selectedFolder);
+      const filtered = fuse.search(searchQuery);
+      return filtered
+        .map((result) => result.item) // map FuseResult to original item
+        .filter((file) => file.folder_id === selectedFolder);
     } else {
-      return files.filter((file) =>
-        file.display_name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      if (searchQuery === "") {
+        console.log("Empty search, returning files");
+        return files;
+      }
+      return fuse.search(searchQuery).map((result) => result.item); // map FuseResult to original item
     }
   }, [files, searchQuery, selectedFolder]);
+
+  React.useEffect(() => {
+    console.log("filteredfiles updated", filteredFiles);
+  }, [filteredFiles]);
 
   const handlePreviewClick = (id) => {
     window.open(`https://canvas.nus.edu.sg/files/${id}`, "_blank");
