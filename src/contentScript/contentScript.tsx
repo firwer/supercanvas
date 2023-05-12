@@ -1,9 +1,10 @@
 import SearchIcon from "@mui/icons-material/Search";
 import "./contentScript.css";
 import SearchBox from "../components/CourseSearchBox";
-import ReactDOM from "react-dom";
+import "react-dom/client";
 
 import React, { useState } from "react";
+import { createRoot } from "react-dom/client";
 const domain = window.location.origin;
 const current_page = window.location.pathname;
 let color = null;
@@ -63,8 +64,8 @@ function loadQuickSearch() {
       header,
       "Test"
     );
-    const iconButton = <SearchIcon sx={{ width: "80px", height: "80px" }} />;
-    ReactDOM.render(iconButton, newElement);
+    const root = createRoot(newElement!);
+    root.render(<SearchIcon sx={{ width: "80px", height: "80px" }} />);
     header.appendChild(newElement);
 
     // Add event listener to button click
@@ -74,7 +75,8 @@ function loadQuickSearch() {
       const id = href.match(/\d+/)[0]; // extracts the first number in the href
       const dialogContainer = document.createElement("div");
       header.appendChild(dialogContainer);
-      ReactDOM.render(<SearchBox courseId={id} />, dialogContainer);
+      const root = createRoot(dialogContainer!);
+      root.render(<SearchBox courseId={id} />);
     });
   });
   const iconButton = <SearchIcon sx={{ width: "25px", height: "25px" }} />;
@@ -116,16 +118,16 @@ function deadlineCard() {
         cards[i],
         ""
       );
-      let assignmentsDueHeader = elementCreate(
+      let deadlineHeader = elementCreate(
         "div",
         "supercanvas-card-header-container",
         cardContainer,
         ""
       );
-      let assignmentsDueLabel = elementCreate(
+      let deadlineTitle = elementCreate(
         "h3",
         "supercanvas-card-header",
-        assignmentsDueHeader,
+        deadlineHeader,
         "Deadlines"
       );
       let skeletonText = elementCreate(
@@ -180,7 +182,6 @@ function getCountdown(date): string {
   }
 }
 
-
 function insertAssignments(data) {
   if (
     document.querySelectorAll(".supercanvas-assignment-container").length > 0
@@ -200,6 +201,7 @@ function insertAssignments(data) {
           .match(/\d+/)[0]
       );
       data.forEach((assignment) => {
+        console.log(assignment);
         if (
           course_id === assignment.course_id &&
           new Date(assignment.plannable_date) > new Date()
@@ -211,7 +213,7 @@ function insertAssignments(data) {
             count++;
             let assignmentContainer = elementCreate(
               "div",
-              "supercanvas-assignment-container",
+              "supercanvas-deadline-container",
               cardContainer,
               ""
             );
@@ -244,15 +246,15 @@ function insertAssignments(data) {
       if (count === 0) {
         let assignmentContainer = elementCreate(
           "div",
-          "supercanvas-assignment-container",
+          "supercanvas-deadline-container",
           cardContainer,
           ""
         );
         let assignmentDivLink = elementCreate(
-          "a",
-          "supercanvas-assignment-link",
+          "p",
+          "supercanvas-deadline-empty",
           assignmentContainer,
-          "None"
+          "None 🎉"
         );
       }
     }

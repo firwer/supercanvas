@@ -35,7 +35,7 @@
   color: rgb(0, 0, 0, 0.9);
 }
 
-.supercanvas-assignment-container {
+.supercanvas-deadline-container {
   display: flex;
   justify-content: space-between;
   margin: 5px;
@@ -63,4 +63,8 @@
   padding-right: 10px;
   align-items: center;
   justify-content: center;
+}
+
+.supercanvas-deadline-empty {
+  margin: 0px;
 }

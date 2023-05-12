@@ -30,15 +30,17 @@ const SearchBox = ({ courseId }) => {
       const response = await fetch(
         `/api/v1/courses/${courseId}/files?per_page=100`
       );
-      const data = await response.json();
-      const folderIds = [
-        ...new Set(
-          data.filter((file) => file.url !== "").map((file) => file.folder_id)
-        ),
-      ];
-      setFiles(data);
+      if (response.ok) {
+        const data = await response.json();
+        const folderIds = [
+          ...new Set(
+            data.filter((file) => file.url !== "").map((file) => file.folder_id)
+          ),
+        ];
+        setFiles(data);
+        fetchFolders(folderIds);
+      }
       setIsLoading(false);
-      fetchFolders(folderIds);
     }
     async function fetchFolders(folderIds) {
       const response = await fetch(
@@ -90,7 +92,6 @@ const SearchBox = ({ courseId }) => {
   };
 
   const handleSelectFolder = (event) => {
-    console.log("Selected Folder: " + event.target.value);
     setSelectedFolder(event.target.value);
   };
 
@@ -158,7 +159,6 @@ const SearchBox = ({ courseId }) => {
               </MenuItem>
               {folders
                 .map((f) => {
-                  console.log(f.id);
                   return f;
                 })
                 .map((folder) => {
