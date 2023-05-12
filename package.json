@@ -31,6 +31,7 @@
     "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.14",
     "fuse.js": "^6.6.2",
-    "moment-timezone": "^0.5.41"
+    "moment-timezone": "^0.5.41",
+    "react-color": "^2.19.3"
   }
 }

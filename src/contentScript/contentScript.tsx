@@ -3,15 +3,16 @@ import "./contentScript.css";
 import SearchBox from "../components/CourseSearchBox";
 import "react-dom/client";
 
-import React, { useState } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 const domain = window.location.origin;
 const current_page = window.location.pathname;
 let color = null;
 let deadlineData = null;
-// TODO: content script
 
-function checkDashboardReady() {
+// Some parts of the code was referenced from ksucpea@gmail.com
+
+function checkDashboardReady(): void {
   if (current_page !== "/" && current_page !== "") return;
 
   const callback = (mutationList) => {
@@ -20,8 +21,22 @@ function checkDashboardReady() {
         mutation.type === "childList" &&
         mutation.target == document.querySelector("#DashboardCard_Container")
       ) {
-        loadQuickSearch();
-        deadlineCard();
+        chrome.storage.local
+          .get("isEnabledDeadline")
+          .then((result) => {
+            if (result.isEnabledDeadline) {
+              deadlineCard();
+            }
+          })
+          .catch((err) => {});
+        chrome.storage.local
+          .get("isEnabledFileSearch")
+          .then((result) => {
+            if (result.isEnabledFileSearch) {
+              loadQuickSearch();
+            }
+          })
+          .catch((err) => {});
       }
     }
   };
@@ -49,20 +64,13 @@ function loadQuickSearch() {
   if (
     document.querySelectorAll(".course-search-btn").length > 0 &&
     document.querySelectorAll(".general-search-btn").length > 0
-  )
+  ) {
     return;
-  // Find the header element and append the search div to it
-  const dashboardHeader = document.querySelector(".fOyUs_bGBk");
+  }
   const headers = document.querySelectorAll(".ic-DashboardCard__header");
-  const threeDots = dashboardHeader.querySelector(".dJCgj_bGBk");
 
   headers.forEach((header) => {
-    const newElement = elementCreate(
-      "div",
-      "course-search-btn",
-      header,
-      "Test"
-    );
+    const newElement = elementCreate("div", "course-search-btn", header, "");
     const root = createRoot(newElement!);
     root.render(<SearchIcon sx={{ width: "80px", height: "80px" }} />);
     header.appendChild(newElement);
@@ -106,7 +114,7 @@ function deadlineCard() {
   try {
     if (
       document.querySelectorAll(".ic-DashboardCard").length > 0 &&
-      document.querySelectorAll(".supercanvas-card-container").length > 0
+      document.querySelectorAll(".supercanvas-container").length > 0
     )
       return;
 
@@ -114,7 +122,7 @@ function deadlineCard() {
     for (let i = 0; i < cards.length; i++) {
       let cardContainer = elementCreate(
         "div",
-        "supercanvas-card-container",
+        "supercanvas-container",
         cards[i],
         ""
       );
@@ -130,22 +138,31 @@ function deadlineCard() {
         deadlineHeader,
         "Deadlines"
       );
-      let skeletonText = elementCreate(
-        "div",
-        "supercanvas-skeleton-text",
-        cardContainer,
-        ""
-      );
+      elementCreate("div", "supercanvas-skeleton-text", cardContainer, "");
     }
     deadlineData.then((data) => {
-      insertAssignments(data);
+      insertTasks(data);
     });
   } catch (e) {}
 }
 
-function cleanDue(date) {
+function formattedDueDate(date) {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   let newdate = new Date(date);
-  return newdate.getMonth() + 1 + "/" + newdate.getDate();
+  return monthNames[newdate.getMonth()] + " " + newdate.getDate();
 }
 
 function getCountdown(date): string {
@@ -165,24 +182,32 @@ function getCountdown(date): string {
   if (days < 1) {
     color = "#EC2F2F"; // red
   } else if (days < 3) {
-    color = "#E69435"; // orange
+    color = "#be7420"; // orange
   } else {
     color = "#2A9028"; // green
   }
   if (months >= 1) {
-    return `In ${months} month${months === 1 ? "" : "s"}`;
+    return `In ${months} month${months === 1 ? "" : "s"} - ${formattedDueDate(
+      date
+    )}`;
   } else if (days >= 1) {
-    return `In ${days} day${days === 1 ? "" : "s"}`;
+    return `In ${days} day${days === 1 ? "" : "s"} - ${formattedDueDate(date)}`;
   } else if (hours >= 1) {
-    return `In ${hours} hour${hours === 1 ? "" : "s"}`;
+    return `In ${hours} hour${hours === 1 ? "" : "s"} - ${formattedDueDate(
+      date
+    )}`;
   } else if (minutes >= 1) {
-    return `In ${minutes} minute${minutes === 1 ? "" : "s"}`;
+    return `In ${minutes} minute${
+      minutes === 1 ? "" : "s"
+    } - ${formattedDueDate(date)}`;
   } else {
-    return `In ${seconds} second${seconds === 1 ? "" : "s"}`;
+    return `In ${seconds} second${
+      seconds === 1 ? "" : "s"
+    } - ${formattedDueDate(date)}`;
   }
 }
 
-function insertAssignments(data) {
+function insertTasks(data) {
   if (
     document.querySelectorAll(".supercanvas-assignment-container").length > 0
   ) {
@@ -191,7 +216,7 @@ function insertAssignments(data) {
   try {
     let cards = document.querySelectorAll(".ic-DashboardCard");
     for (let i = 0; i < cards.length; i++) {
-      let cardContainer = cards[i].querySelector(".supercanvas-card-container");
+      let cardContainer = cards[i].querySelector(".supercanvas-container");
       cardContainer.querySelector(".supercanvas-skeleton-text").remove(); //remove loader
       let count = 0;
       let course_id = parseInt(
@@ -200,50 +225,44 @@ function insertAssignments(data) {
           .getAttribute("href")
           .match(/\d+/)[0]
       );
-      data.forEach((assignment) => {
+      data.forEach((task) => {
         if (
-          course_id === assignment.course_id &&
-          new Date(assignment.plannable_date) > new Date()
+          course_id === task.course_id &&
+          new Date(task.plannable_date) > new Date()
         ) {
           if (
-            assignment.plannable_type === "assignment" ||
-            assignment.plannable_type === "quiz"
+            task.plannable_type === "assignment" ||
+            task.plannable_type === "quiz"
           ) {
             count++;
-            let assignmentContainer = elementCreate(
+            let taskContainer = elementCreate(
               "div",
               "supercanvas-deadline-container",
               cardContainer,
               ""
             );
-            let assignmentName = elementCreate(
+            let taskName = elementCreate(
               "a",
               "supercanvas-deadline-text",
-              assignmentContainer,
-              assignment.plannable.title.length > 15
-                ? assignment.plannable.title.substring(0, 15) + "..."
-                : assignment.plannable.title
+              taskContainer,
+              task.plannable.title.length > 15
+                ? task.plannable.title.substring(0, 15) + "..."
+                : task.plannable.title
             );
-            let timeRemaining = getCountdown(assignment.plannable_date);
-            let assignmentCountdown = elementCreate(
+            let timeRemaining = getCountdown(task.plannable_date);
+            let taskCountdown = elementCreate(
               "div",
               "supercanvas-deadline-countdown",
-              assignmentContainer,
+              taskContainer,
               timeRemaining
             );
-            assignmentCountdown.style.color = color;
-            elementCreate(
-              "span",
-              "supercanvas-deadline-time",
-              assignmentContainer,
-              cleanDue(assignment.plannable_date)
-            );
-            assignmentName.setAttribute("href", assignment.html_url);
+            taskCountdown.style.color = color;
+            taskName.setAttribute("href", task.html_url);
           }
         }
       });
       if (count === 0) {
-        let assignmentContainer = elementCreate(
+        let taskContainer = elementCreate(
           "div",
           "supercanvas-deadline-container",
           cardContainer,
@@ -252,7 +271,7 @@ function insertAssignments(data) {
         elementCreate(
           "p",
           "supercanvas-deadline-empty",
-          assignmentContainer,
+          taskContainer,
           "None 🎉"
         );
       }

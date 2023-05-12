@@ -1,7 +1,76 @@
-body {
-  background-color: #fff;
+.container {
+  padding: 16px;
+  width: 400px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1); /* Add box shadow */
 }
 
-.h1 {
-  color: white;
+.logo {
+  width: 80px;
+  height: 80px;
+}
+
+.section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #f1c40f;
+  text-shadow: 2px 2px #f39c12;
+}
+.color-picker {
+  margin-top: 16px;
+}
+
+.MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+.MuiFormControlLabel-root {
+  margin-right: 0;
+}
+
+.MuiButton-root {
+  display: block;
+  margin: 0 auto;
+  background-color: #f39c12;
+  color: #fff;
+  &:hover {
+    background-color: #f1c40f;
+  }
+}
+
+.MuiButton-containedPrimary {
+  margin-top: 16px;
+}
+
+.MuiCheckbox-colorPrimary.Mui-checked {
+  color: #f39c12;
+}
+
+.MuiFormGroup-root {
+  margin-bottom: 16px;
+}
+
+.MuiFormLabel-root {
+  color: #000;
+}
+
+.MuiInput-underline:before,
+.MuiInput-underline:hover:not(.Mui-disabled):before {
+  border-bottom: 2px solid #f39c12;
+}
+
+.MuiInputBase-input {
+  color: #000;
+}
+
+.MuiMenuItem-root {
+  color: #000;
 }
