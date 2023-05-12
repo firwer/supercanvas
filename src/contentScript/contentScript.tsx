@@ -20,7 +20,6 @@ function checkDashboardReady() {
         mutation.type === "childList" &&
         mutation.target == document.querySelector("#DashboardCard_Container")
       ) {
-        console.log("Scripts running");
         loadQuickSearch();
         deadlineCard();
       }
@@ -80,19 +79,20 @@ function loadQuickSearch() {
     });
   });
   const iconButton = <SearchIcon sx={{ width: "25px", height: "25px" }} />;
-  const searchBar = elementCreate(
-    "div",
-    "general-search-btn",
-    dashboardHeader,
-    "Search All Files..."
-  );
-  //searchBar.appendChild(iconButton);
-  dashboardHeader.insertBefore(searchBar, threeDots);
+  // const searchBar = elementCreate(
+  //   "div",
+  //   "general-search-btn",
+  //   dashboardHeader,
+  //   "Search All Files..."
+  // );
+  // dashboardHeader.insertBefore(searchBar, threeDots);
 }
 
-console.log("Running SuperCanvas");
-getDeadlines();
-checkDashboardReady();
+if (domain.includes("canvas")) {
+  console.log("Running SuperCanvas");
+  getDeadlines();
+  checkDashboardReady();
+}
 
 function elementCreate(element, elclass, location, text) {
   let creation = document.createElement(element);
@@ -201,7 +201,6 @@ function insertAssignments(data) {
           .match(/\d+/)[0]
       );
       data.forEach((assignment) => {
-        console.log(assignment);
         if (
           course_id === assignment.course_id &&
           new Date(assignment.plannable_date) > new Date()
@@ -233,7 +232,7 @@ function insertAssignments(data) {
               timeRemaining
             );
             assignmentCountdown.style.color = color;
-            let assignmentDueAt = elementCreate(
+            elementCreate(
               "span",
               "supercanvas-deadline-time",
               assignmentContainer,
@@ -250,7 +249,7 @@ function insertAssignments(data) {
           cardContainer,
           ""
         );
-        let assignmentDivLink = elementCreate(
+        elementCreate(
           "p",
           "supercanvas-deadline-empty",
           assignmentContainer,
@@ -259,7 +258,6 @@ function insertAssignments(data) {
       }
     }
   } catch (e) {
-    console.log("Some error");
     console.log(e);
   }
 }

@@ -1,8 +1,8 @@
 .course-search-btn {
   display: flex;
   position: absolute;
-  background: rgb(255, 255, 255, 0.5);
-  color: rgb(0, 0, 0, 0.5);
+  background-color: #fff;
+  color: #222;
   width: 100px;
   height: 100px;
   border-radius: 20px;
@@ -11,6 +11,17 @@
   text-align: center;
   align-items: center;
   justify-content: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+.course-search-btn:hover {
+  background-color: #222;
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .general-search-btn {

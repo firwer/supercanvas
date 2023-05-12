@@ -1,16 +1,12 @@
 import {
-  Box,
-  Button,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
   IconButton,
   MenuItem,
   Select,
-  Typography,
 } from "@mui/material";
 import React from "react";
 import "./CourseSearchBox.css";
