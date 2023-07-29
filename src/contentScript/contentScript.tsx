@@ -8,7 +8,6 @@ import { createRoot } from "react-dom/client";
 const domain = window.location.origin;
 const current_page = window.location.pathname;
 let color = null;
-let deadlineData = null;
 
 // Some parts of the code was referenced from ksucpea@gmail.com
 
@@ -25,7 +24,7 @@ function checkDashboardReady(): void {
           .get("isEnabledDeadline")
           .then((result) => {
             if (result.isEnabledDeadline) {
-              deadlineCard();
+              getDeadlines();
             }
           })
           .catch((err) => {});
@@ -50,14 +49,22 @@ function checkDashboardReady(): void {
 
 function getDeadlines() {
   let weekAgo = new Date(Date.now() - 604800000);
-  async function fetchDeadlines() {
-    const response = await fetch(
-      `/api/v1/planner/items?start_date=${weekAgo.toISOString()}&per_page=100`
-    );
-    let r = await response.json();
-    return r;
+  try {
+    async function fetchDeadlines() {
+      const response = await fetch(
+        `/api/v1/planner/items?start_date=${weekAgo.toISOString()}&per_page=100`
+      );
+      let r = await response.json();
+      return r;
+    }
+    const deadlineData = fetchDeadlines();
+    deadlineData.then((data) => {
+      console.log(data);
+      deadlineCard(data);
+    });
+  } catch (e) {
+    console.error("Error fetching deadlines, consider refreshing page", e);
   }
-  deadlineData = fetchDeadlines();
 }
 
 function loadQuickSearch() {
@@ -87,18 +94,10 @@ function loadQuickSearch() {
     });
   });
   const iconButton = <SearchIcon sx={{ width: "25px", height: "25px" }} />;
-  // const searchBar = elementCreate(
-  //   "div",
-  //   "general-search-btn",
-  //   dashboardHeader,
-  //   "Search All Files..."
-  // );
-  // dashboardHeader.insertBefore(searchBar, threeDots);
 }
 
 if (domain.includes("canvas")) {
   console.log("Running SuperCanvas");
-  getDeadlines();
   checkDashboardReady();
 }
 
@@ -110,7 +109,7 @@ function elementCreate(element, elclass, location, text) {
   return creation;
 }
 
-function deadlineCard() {
+function deadlineCard(deadlineData) {
   try {
     if (
       document.querySelectorAll(".ic-DashboardCard").length > 0 &&
@@ -136,13 +135,11 @@ function deadlineCard() {
         "h3",
         "supercanvas-card-header",
         deadlineHeader,
-        "Deadlines"
+        `Deadlines (${deadlineData.length})`
       );
       elementCreate("div", "supercanvas-skeleton-text", cardContainer, "");
     }
-    deadlineData.then((data) => {
-      insertTasks(data);
-    });
+    insertTasks(deadlineData);
   } catch (e) {}
 }
 
@@ -187,23 +184,23 @@ function getCountdown(date): string {
     color = "#2A9028"; // green
   }
   if (months >= 1) {
-    return `In ${months} month${months === 1 ? "" : "s"} - ${formattedDueDate(
+    return `In ${months} month${months === 1 ? "" : "s"} • ${formattedDueDate(
       date
     )}`;
   } else if (days >= 1) {
-    return `In ${days} day${days === 1 ? "" : "s"} - ${formattedDueDate(date)}`;
+    return `In ${days} day${days === 1 ? "" : "s"} • ${formattedDueDate(date)}`;
   } else if (hours >= 1) {
-    return `In ${hours} hour${hours === 1 ? "" : "s"} - ${formattedDueDate(
+    return `In ${hours} hour${hours === 1 ? "" : "s"} • ${formattedDueDate(
       date
     )}`;
   } else if (minutes >= 1) {
-    return `In ${minutes} minute${
-      minutes === 1 ? "" : "s"
-    } - ${formattedDueDate(date)}`;
+    return `In ${minutes} min${minutes === 1 ? "" : "s"} • ${formattedDueDate(
+      date
+    )}`;
   } else {
-    return `In ${seconds} second${
-      seconds === 1 ? "" : "s"
-    } - ${formattedDueDate(date)}`;
+    return `In ${seconds} sec${seconds === 1 ? "" : "s"} • ${formattedDueDate(
+      date
+    )}`;
   }
 }
 
@@ -258,6 +255,7 @@ function insertTasks(data) {
             );
             taskCountdown.style.color = color;
             taskName.setAttribute("href", task.html_url);
+            taskName.setAttribute("title", task.plannable.title);
           }
         }
       });

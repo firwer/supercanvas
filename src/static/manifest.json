@@ -1,7 +1,7 @@
 {
   "name": "Super Canvas",
-  "description": "Supercharge Your Canvas LMS Experience, by WP",
-  "version": "1.0.0",
+  "description": "Supercharge Your Canvas LMS Experience",
+  "version": "1.1.0",
   "manifest_version": 3,
   "icons": {
     "16": "icon.png",
@@ -10,10 +10,10 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Super Canvas Extension for Canvas LMS, by WP",
+    "default_title": "Super Canvas Extension for Canvas LMS",
     "default_icon": "icon.png"
   },
-  "permissions": ["storage", "identity", "tabs"],
+  "permissions": ["storage"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"

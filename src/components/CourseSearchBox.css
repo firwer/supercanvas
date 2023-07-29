@@ -21,6 +21,7 @@
 
 .itemBox {
   list-style: none;
+  width: 100%;
   border-bottom: 1px solid #ccc;
   padding: 10px;
   display: flex;
@@ -32,9 +33,21 @@
 }
 
 .itemText {
-  display: inline;
-  text-decoration: none;
-  color: #333;
+  height: 30px;
+  border-radius: 3px;
+  display: flex;
+  width: 280px;
+  overflow: hidden;
+  padding: 5px;
+}
+
+.itemText span {
+  height: 30px;
+  width: 280px;
+  color: #000;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: nowrap;
 }
 
 .elapsedTime {
@@ -44,7 +57,9 @@
   background-color: #999;
   border-radius: 10px;
   color: white;
-  width: 130px;
+  width: 100%;
+  padding-left: 8px;
+  padding-right: 8px;
   text-align: center;
   justify-content: center;
   align-items: center;
@@ -53,7 +68,7 @@
 
 .leftpanel {
   display: flex;
-  width: 250px;
+  width: 280px;
 }
 
 .rightpanel {

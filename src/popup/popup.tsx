@@ -95,7 +95,7 @@ const App: React.FC<{}> = () => {
             ☣️ Report Issues/Bugs to Developer:{" "}
             <a href="mailto:me@pohwp.dev">me@pohwp.dev</a>
           </p>
-          <p>☕ Made by Wei Pin P. From NUS</p>
+          <p>☕ Made by Wei Pin P.</p>
         </Grid>
       </div>
     </ThemeProvider>

@@ -198,7 +198,7 @@ const SearchBox = ({ courseId }) => {
           sx={{
             alignItems: "center",
             justifyContent: "center",
-            height: "500px",
+            height: "350px",
             minHeight: "100px",
             width: "500px",
           }}
@@ -219,9 +219,12 @@ const SearchBox = ({ courseId }) => {
                     const elapsedTime = calculateElapsedTime(file.created_at);
                     return (
                       <li key={index} className="itemBox">
-                        <div className="leftpanel">
+                        <div
+                          className="leftpanel"
+                          title={"Download File: " + file.display_name}
+                        >
                           <a href={file.url} className="itemText" download>
-                            {file.display_name}
+                            <span>{file.display_name}</span>
                           </a>
                         </div>
                         <div className="rightpanel">
