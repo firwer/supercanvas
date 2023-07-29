@@ -1,5 +1,8 @@
 # supercanvas
 Supercharge your canvas LMS experience because Canvas isn't doing better
+![1](https://github.com/firwer/supercanvas/assets/7589432/2b69e106-2a10-4b86-bfe6-df3f63364e00)
+![2](https://github.com/firwer/supercanvas/assets/7589432/462b1fa6-d454-49fd-9b49-219c88e7f189)
+![3](https://github.com/firwer/supercanvas/assets/7589432/c12359d7-167f-46ad-9b97-e87502d02fc6)
 
 
 ## Fast File Navigation/Viewer
@@ -15,7 +18,4 @@ So considering this, I've added a quick search feature to each module card on th
 
 ## Deadline Overview & Countdown
 
-All your deadlines with countdown at a glance, something similar to what we had in luminus back then.
-
-![image](https://github.com/firwer/supercanvas/assets/7589432/befdf173-192f-4c2e-8024-0a3dce962b73)
-![image](https://github.com/firwer/supercanvas/assets/7589432/ec5a1f01-12a8-42a3-8e34-8a5d92b8b8a5)
+All your deadlines with countdown at a glance, something similar to what we had in luminus LMS back then.
