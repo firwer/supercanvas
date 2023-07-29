@@ -30,7 +30,6 @@ const SearchBox = ({ courseId }) => {
   const [fuse, setFuse] = React.useState(new Fuse(files, fuseOptions));
 
   React.useEffect(() => {
-    console.log("fuse updated", files);
     const newFuse = new Fuse(files, fuseOptions);
     setFuse(newFuse);
   }, [files]);
@@ -110,28 +109,68 @@ const SearchBox = ({ courseId }) => {
       if (searchQuery === "") {
         return files.filter((file) => file.folder_id === selectedFolder);
       }
-      console.log("selectedFolder", selectedFolder);
       const filtered = fuse.search(searchQuery);
       return filtered
         .map((result) => result.item) // map FuseResult to original item
         .filter((file) => file.folder_id === selectedFolder);
     } else {
       if (searchQuery === "") {
-        console.log("Empty search, returning files");
         return files;
       }
       return fuse.search(searchQuery).map((result) => result.item); // map FuseResult to original item
     }
   }, [files, searchQuery, selectedFolder]);
 
-  React.useEffect(() => {
-    console.log("filteredfiles updated", filteredFiles);
-  }, [filteredFiles]);
-
   const handlePreviewClick = (id) => {
-    window.open(`https://canvas.nus.edu.sg/files/${id}`, "_blank");
+    window.open(`/files/${id}`, "_blank");
   };
-
+  const getImageSrc = (file: any) => {
+    const doc = chrome.runtime.getURL("doc.png");
+    const pdf = chrome.runtime.getURL("pdf.png");
+    const ppt = chrome.runtime.getURL("ppt.png");
+    const txt = chrome.runtime.getURL("txt.png");
+    const xls = chrome.runtime.getURL("xls.png");
+    const zip = chrome.runtime.getURL("zip.png");
+    const mp3 = chrome.runtime.getURL("mp3.png");
+    const png = chrome.runtime.getURL("png.png");
+    const jpg = chrome.runtime.getURL("jpg.png");
+    const mpeg = chrome.runtime.getURL("mpeg.png");
+    const avi = chrome.runtime.getURL("avi.png");
+    const unk = chrome.runtime.getURL("unk.png");
+    switch (file["content-type"]) {
+      case "video/x-msvideo":
+        return avi;
+      case "video/mp4":
+      case "video/mpeg":
+        return mpeg;
+      case "audio/mp3":
+        return mp3;
+      case "image/jpeg":
+      case "image/jpg":
+        return jpg;
+      case "image/png":
+        return png;
+      case "application/msword":
+      case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        return doc;
+      case "application/pdf":
+        return pdf;
+      case "application/vnd.ms-powerpoint":
+      case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        return ppt;
+      case "text/plain":
+        return txt;
+      case "application/vnd.ms-excel":
+      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        return xls;
+      case "application/zip":
+      case "application/x-zip-compressed":
+      case "application/x-7z-compressed":
+        return zip;
+      default:
+        return unk;
+    }
+  };
   return (
     <Dialog open={open} onClose={handleClose}>
       <div style={{ borderRadius: "30px" }}>
@@ -181,13 +220,14 @@ const SearchBox = ({ courseId }) => {
                   return f;
                 })
                 .map((folder) => {
+                  const name = folder.full_name.replace("course files/", "");
                   return (
                     <MenuItem
                       sx={{ justifyContent: "space-between" }}
                       key={folder.id}
                       value={folder.id}
                     >
-                      {folder.full_name.replace("course files/", "")}
+                      {name.length > 40 ? name.substring(0, 40) + "..." : name}
                     </MenuItem>
                   );
                 })}
@@ -216,9 +256,14 @@ const SearchBox = ({ courseId }) => {
                       Date.parse(b.created_at) - Date.parse(a.created_at)
                   )
                   .map((file, index) => {
+                    const imageSrc = getImageSrc(file);
                     const elapsedTime = calculateElapsedTime(file.created_at);
                     return (
                       <li key={index} className="itemBox">
+                        <img
+                          src={imageSrc}
+                          style={{ height: "30px", width: "30px" }}
+                        />
                         <div
                           className="leftpanel"
                           title={"Download File: " + file.display_name}

@@ -1,8 +1,8 @@
 .course-search-btn {
   display: flex;
   position: absolute;
-  background-color: #fff;
-  color: #222;
+  background-color: #ffffffa3;
+  color: #000000a3;
   width: 100px;
   height: 100px;
   border-radius: 20px;
@@ -18,32 +18,10 @@
 }
 
 .course-search-btn:hover {
-  background-color: #222;
-  color: #fff;
+  background-color: #dfdfdf;
+  color: #323232;
   font-size: 20px;
   box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
-}
-
-.general-search-btn {
-  display: flex;
-  width: 200px;
-  height: 35px;
-  align-items: center;
-  padding: 10px;
-  background: #777;
-  color: #ebedf0;
-  border-radius: 40px;
-  cursor: pointer;
-  border: 3px solid #777;
-}
-
-.general-search-btn:hover {
-  border: 3px solid #ebedf0;
-}
-
-.search-btn:hover {
-  background: rgb(255, 255, 255, 0.9);
-  color: rgb(0, 0, 0, 0.9);
 }
 
 .supercanvas-deadline-container {

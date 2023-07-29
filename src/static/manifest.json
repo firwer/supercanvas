@@ -28,7 +28,7 @@
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
-      "resources": ["todo.png", "../contentScript/contentScript.css"]
+      "resources": ["*"]
     }
   ]
 }

@@ -39,14 +39,15 @@
   width: 280px;
   overflow: hidden;
   padding: 5px;
+  align-items: center;
 }
 
 .itemText span {
-  height: 30px;
   width: 280px;
   color: #000;
   text-overflow: ellipsis;
-  display: block;
+  align-items: center;
+  overflow: hidden;
   white-space: nowrap;
 }
 

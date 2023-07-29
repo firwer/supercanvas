@@ -59,7 +59,6 @@ function getDeadlines() {
     }
     const deadlineData = fetchDeadlines();
     deadlineData.then((data) => {
-      console.log(data);
       const uncompletedTasks = data.filter(
         (task) => !task.submissions.submitted
       );
@@ -71,18 +70,16 @@ function getDeadlines() {
 }
 
 function loadQuickSearch() {
-  if (
-    document.querySelectorAll(".course-search-btn").length > 0 &&
-    document.querySelectorAll(".general-search-btn").length > 0
-  ) {
+  if (document.querySelectorAll(".course-search-btn").length > 0) {
     return;
   }
   const headers = document.querySelectorAll(".ic-DashboardCard__header");
 
   headers.forEach((header) => {
     const newElement = elementCreate("div", "course-search-btn", header, "");
+    newElement.setAttribute("title", "Quick File Search");
     const root = createRoot(newElement!);
-    root.render(<SearchIcon sx={{ width: "80px", height: "80px" }} />);
+    root.render(<SearchIcon sx={{ height: "80px", width: "80px" }} />);
     header.appendChild(newElement);
 
     // Add event listener to button click
@@ -141,9 +138,7 @@ function deadlineCard(deadlineData) {
           .match(/\d+/)[0]
       );
       let courseDeadlines = deadlineData.filter(
-        (task) =>
-          task.course_id === course_id &&
-          new Date(task.plannable_date) > new Date()
+        (task) => task.course_id === course_id
       );
       let deadlineTitle = elementCreate(
         "h3",
@@ -182,7 +177,8 @@ function getCountdown(date): string {
   const timeRemaining = taskDate.getTime() - now.getTime();
 
   if (timeRemaining <= 0) {
-    return "Now";
+    color = "#EC2F2F"; // red
+    return "OVERDUE ";
   }
 
   const seconds = Math.floor(timeRemaining / 1000);
@@ -236,10 +232,7 @@ function insertTasks(data) {
           .match(/\d+/)[0]
       );
       data.forEach((task) => {
-        if (
-          course_id === task.course_id &&
-          new Date(task.plannable_date) > new Date()
-        ) {
+        if (course_id === task.course_id) {
           if (
             task.plannable_type === "assignment" ||
             task.plannable_type === "quiz"
