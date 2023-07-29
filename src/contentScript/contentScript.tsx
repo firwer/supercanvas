@@ -60,7 +60,10 @@ function getDeadlines() {
     const deadlineData = fetchDeadlines();
     deadlineData.then((data) => {
       console.log(data);
-      deadlineCard(data);
+      const uncompletedTasks = data.filter(
+        (task) => !task.submissions.submitted
+      );
+      deadlineCard(uncompletedTasks);
     });
   } catch (e) {
     console.error("Error fetching deadlines, consider refreshing page", e);
@@ -97,7 +100,7 @@ function loadQuickSearch() {
 }
 
 if (domain.includes("canvas")) {
-  console.log("Running SuperCanvas");
+  console.log("Running SuperCanvas Extension");
   checkDashboardReady();
 }
 
@@ -131,11 +134,22 @@ function deadlineCard(deadlineData) {
         cardContainer,
         ""
       );
+      let course_id = parseInt(
+        cards[i]
+          .querySelector(".ic-DashboardCard__link")
+          .getAttribute("href")
+          .match(/\d+/)[0]
+      );
+      let courseDeadlines = deadlineData.filter(
+        (task) =>
+          task.course_id === course_id &&
+          new Date(task.plannable_date) > new Date()
+      );
       let deadlineTitle = elementCreate(
         "h3",
         "supercanvas-card-header",
         deadlineHeader,
-        `Deadlines (${deadlineData.length})`
+        `Deadlines (${courseDeadlines.length})`
       );
       elementCreate("div", "supercanvas-skeleton-text", cardContainer, "");
     }
@@ -214,7 +228,6 @@ function insertTasks(data) {
     let cards = document.querySelectorAll(".ic-DashboardCard");
     for (let i = 0; i < cards.length; i++) {
       let cardContainer = cards[i].querySelector(".supercanvas-container");
-      cardContainer.querySelector(".supercanvas-skeleton-text").remove(); //remove loader
       let count = 0;
       let course_id = parseInt(
         cards[i]
@@ -242,8 +255,8 @@ function insertTasks(data) {
               "a",
               "supercanvas-deadline-text",
               taskContainer,
-              task.plannable.title.length > 15
-                ? task.plannable.title.substring(0, 15) + "..."
+              task.plannable.title.length > 14
+                ? task.plannable.title.substring(0, 14) + "..."
                 : task.plannable.title
             );
             let timeRemaining = getCountdown(task.plannable_date);
@@ -253,6 +266,8 @@ function insertTasks(data) {
               taskContainer,
               timeRemaining
             );
+            taskName.style.fontSize = "13px";
+            taskCountdown.style.fontSize = "13px";
             taskCountdown.style.color = color;
             taskName.setAttribute("href", task.html_url);
             taskName.setAttribute("title", task.plannable.title);
@@ -272,6 +287,7 @@ function insertTasks(data) {
           taskContainer,
           "None 🎉"
         );
+        taskContainer.style.fontSize = "13px";
       }
     }
   } catch (e) {
