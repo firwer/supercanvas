@@ -16,10 +16,12 @@ function checkDashboardReady(): void {
 
   const callback = (mutationList) => {
     for (const mutation of mutationList) {
+      console.log("MUTATION " + mutation.type);
       if (
         mutation.type === "childList" &&
         mutation.target == document.querySelector("#DashboardCard_Container")
       ) {
+        console.log("INJECTING");
         chrome.storage.local
           .get("isEnabledDeadline")
           .then((result) => {
@@ -59,9 +61,11 @@ function getDeadlines() {
     }
     const deadlineData = fetchDeadlines();
     deadlineData.then((data) => {
+      console.log("all", data);
       const uncompletedTasks = data.filter(
         (task) => !task.submissions.submitted
       );
+      console.log("uncompleted", uncompletedTasks);
       deadlineCard(uncompletedTasks);
     });
   } catch (e) {
@@ -73,6 +77,7 @@ function loadQuickSearch() {
   if (document.querySelectorAll(".course-search-btn").length > 0) {
     return;
   }
+  console.log("Injecting Quick Search");
   const headers = document.querySelectorAll(".ic-DashboardCard__header");
 
   headers.forEach((header) => {
@@ -110,6 +115,7 @@ function elementCreate(element, elclass, location, text) {
 }
 
 function deadlineCard(deadlineData) {
+  console.log("Creating Deadline Card");
   try {
     if (
       document.querySelectorAll(".ic-DashboardCard").length > 0 &&
@@ -137,9 +143,14 @@ function deadlineCard(deadlineData) {
           .getAttribute("href")
           .match(/\d+/)[0]
       );
+      console.log("Deadlines for course:", course_id, deadlineData);
       let courseDeadlines = deadlineData.filter(
-        (task) => task.course_id === course_id
+        (task) =>
+          task.course_id === course_id &&
+          (task.plannable_type === "assignment" ||
+            task.plannable_type === "quiz")
       );
+      console.log("course:", courseDeadlines);
       let deadlineTitle = elementCreate(
         "h3",
         "supercanvas-card-header",
@@ -232,39 +243,38 @@ function insertTasks(data) {
           .match(/\d+/)[0]
       );
       data.forEach((task) => {
-        if (course_id === task.course_id) {
-          if (
-            task.plannable_type === "assignment" ||
-            task.plannable_type === "quiz"
-          ) {
-            count++;
-            let taskContainer = elementCreate(
-              "div",
-              "supercanvas-deadline-container",
-              cardContainer,
-              ""
-            );
-            let taskName = elementCreate(
-              "a",
-              "supercanvas-deadline-text",
-              taskContainer,
-              task.plannable.title.length > 14
-                ? task.plannable.title.substring(0, 14) + "..."
-                : task.plannable.title
-            );
-            let timeRemaining = getCountdown(task.plannable_date);
-            let taskCountdown = elementCreate(
-              "div",
-              "supercanvas-deadline-countdown",
-              taskContainer,
-              timeRemaining
-            );
-            taskName.style.fontSize = "13px";
-            taskCountdown.style.fontSize = "13px";
-            taskCountdown.style.color = color;
-            taskName.setAttribute("href", task.html_url);
-            taskName.setAttribute("title", task.plannable.title);
-          }
+        if (
+          course_id === task.course_id &&
+          (task.plannable_type === "assignment" ||
+            task.plannable_type === "quiz")
+        ) {
+          count++;
+          let taskContainer = elementCreate(
+            "div",
+            "supercanvas-deadline-container",
+            cardContainer,
+            ""
+          );
+          let taskName = elementCreate(
+            "a",
+            "supercanvas-deadline-text",
+            taskContainer,
+            task.plannable.title.length > 14
+              ? task.plannable.title.substring(0, 14) + "..."
+              : task.plannable.title
+          );
+          let timeRemaining = getCountdown(task.plannable_date);
+          let taskCountdown = elementCreate(
+            "div",
+            "supercanvas-deadline-countdown",
+            taskContainer,
+            timeRemaining
+          );
+          taskName.style.fontSize = "13px";
+          taskCountdown.style.fontSize = "13px";
+          taskCountdown.style.color = color;
+          taskName.setAttribute("href", task.html_url);
+          taskName.setAttribute("title", task.plannable.title);
         }
       });
       if (count === 0) {
