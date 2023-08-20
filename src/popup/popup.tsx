@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
-  Button,
   Checkbox,
-  FormControl,
   FormControlLabel,
   FormGroup,
   Grid,
-  InputLabel,
   MenuItem,
   Select,
   TextField,
 } from "@mui/material";
-import { TwitterPicker } from "react-color";
 import { createRoot } from "react-dom/client";
 import "./popup.css";
 
@@ -29,7 +25,10 @@ const theme = createTheme({
 
 const App: React.FC<{}> = () => {
   const [disableDeadline, setDisableDeadline] = useState(true);
+  const [maxDeadlines, setMaxDeadlines] = useState(6);
   const [disableFileSearch, setDisableFileSearch] = useState(true);
+  const [timeValue, setTimeValue] = useState(6);
+  const [date, setDate] = useState("weeks");
 
   const handleFileSearchChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -43,15 +42,49 @@ const App: React.FC<{}> = () => {
     setDisableDeadline(event.target.checked);
   };
 
+  const handleMaxDeadlinesChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    chrome.storage.local.set({ userMaxDeadlines: event.target.value });
+    setMaxDeadlines(parseInt(event.target.value));
+  };
+
+  const handleTimeValueChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    chrome.storage.local.set({ userTimeValue: event.target.value });
+    setTimeValue(parseInt(event.target.value));
+  };
+
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    chrome.storage.local.set({ userDate: event.target.value });
+    setDate(event.target.value);
+  };
+
   useEffect(() => {
     chrome.storage.local.get(
-      ["isEnabledDeadline", "isEnabledFileSearch"],
+      [
+        "isEnabledDeadline",
+        "isEnabledFileSearch",
+        "userMaxDeadlines",
+        "userTimeValue",
+        "userDate",
+      ],
       function (result) {
         if (result.isEnabledDeadline !== undefined) {
           setDisableDeadline(result.isEnabledDeadline);
         }
         if (result.isEnabledFileSearch !== undefined) {
           setDisableFileSearch(result.isEnabledFileSearch);
+        }
+        if (result.userMaxDeadlines !== undefined) {
+          setMaxDeadlines(result.userMaxDeadlines);
+        }
+        if (result.userTimeValue !== undefined) {
+          setTimeValue(result.userTimeValue);
+        }
+        if (result.userDate !== undefined) {
+          setDate(result.userDate);
         }
       }
     );
@@ -89,6 +122,44 @@ const App: React.FC<{}> = () => {
               }
               label="Deadline Card"
             />
+            <div style={{ display: "flex", gap: "4px" }}>
+              <p>Only show deadlines for the next:</p>
+              <TextField
+                type="number"
+                InputProps={{
+                  inputProps: { min: 0 },
+                }}
+                size="small"
+                sx={{ width: "70px", height: "30px" }}
+                value={timeValue}
+                onChange={handleTimeValueChange}
+              />
+              <Select
+                size="small"
+                displayEmpty
+                value={date}
+                defaultValue="weeks"
+                onChange={handleDateChange}
+              >
+                <MenuItem value="days">days</MenuItem>
+                <MenuItem value="weeks">weeks</MenuItem>
+                <MenuItem value="months">months</MenuItem>
+              </Select>
+            </div>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <p>Display up to</p>
+              <TextField
+                type="number"
+                size="small"
+                sx={{ width: "70px", height: "30px" }}
+                InputProps={{
+                  inputProps: { min: 0 },
+                }}
+                value={maxDeadlines}
+                onChange={handleMaxDeadlinesChange}
+              />
+              <p> deadlines per course</p>
+            </div>
           </FormGroup>
           <p>⚠️ Please refresh your canvas tab after making changes</p>
           <p>

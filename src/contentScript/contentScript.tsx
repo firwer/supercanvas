@@ -7,6 +7,9 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 const domain = window.location.origin;
 const current_page = window.location.pathname;
+let deadlineTimeValue = 6;
+let deadlineDate = "weeks";
+let maxDeadlines = 6;
 let color = null;
 
 // Some parts of the code was referenced from ksucpea@gmail.com
@@ -16,12 +19,10 @@ function checkDashboardReady(): void {
 
   const callback = (mutationList) => {
     for (const mutation of mutationList) {
-      console.log("MUTATION " + mutation.type);
       if (
         mutation.type === "childList" &&
         mutation.target == document.querySelector("#DashboardCard_Container")
       ) {
-        console.log("INJECTING");
         chrome.storage.local
           .get("isEnabledDeadline")
           .then((result) => {
@@ -50,6 +51,14 @@ function checkDashboardReady(): void {
 }
 
 function getDeadlines() {
+  chrome.storage.local.get(
+    ["userMaxDeadlines", "userDate", "userTimeValue"],
+    function (result) {
+      deadlineTimeValue = result.userTimeValue;
+      deadlineDate = result.userDate;
+      maxDeadlines = result.userMaxDeadlines;
+    }
+  );
   let weekAgo = new Date(Date.now() - 604800000);
   try {
     async function fetchDeadlines() {
@@ -61,12 +70,10 @@ function getDeadlines() {
     }
     const deadlineData = fetchDeadlines();
     deadlineData.then((data) => {
-      console.log("all", data);
       const uncompletedTasks = data.filter(
         (task) => !task.submissions.submitted
       );
-      console.log("uncompleted", uncompletedTasks);
-      deadlineCard(uncompletedTasks);
+      insertTasks(uncompletedTasks);
     });
   } catch (e) {
     console.error("Error fetching deadlines, consider refreshing page", e);
@@ -77,7 +84,6 @@ function loadQuickSearch() {
   if (document.querySelectorAll(".course-search-btn").length > 0) {
     return;
   }
-  console.log("Injecting Quick Search");
   const headers = document.querySelectorAll(".ic-DashboardCard__header");
 
   headers.forEach((header) => {
@@ -114,55 +120,6 @@ function elementCreate(element, elclass, location, text) {
   return creation;
 }
 
-function deadlineCard(deadlineData) {
-  console.log("Creating Deadline Card");
-  try {
-    if (
-      document.querySelectorAll(".ic-DashboardCard").length > 0 &&
-      document.querySelectorAll(".supercanvas-container").length > 0
-    )
-      return;
-
-    let cards = document.querySelectorAll(".ic-DashboardCard");
-    for (let i = 0; i < cards.length; i++) {
-      let cardContainer = elementCreate(
-        "div",
-        "supercanvas-container",
-        cards[i],
-        ""
-      );
-      let deadlineHeader = elementCreate(
-        "div",
-        "supercanvas-card-header-container",
-        cardContainer,
-        ""
-      );
-      let course_id = parseInt(
-        cards[i]
-          .querySelector(".ic-DashboardCard__link")
-          .getAttribute("href")
-          .match(/\d+/)[0]
-      );
-      console.log("Deadlines for course:", course_id, deadlineData);
-      let courseDeadlines = deadlineData.filter(
-        (task) =>
-          task.course_id === course_id &&
-          (task.plannable_type === "assignment" ||
-            task.plannable_type === "quiz")
-      );
-      console.log("course:", courseDeadlines);
-      let deadlineTitle = elementCreate(
-        "h3",
-        "supercanvas-card-header",
-        deadlineHeader,
-        `Deadlines (${courseDeadlines.length})`
-      );
-      elementCreate("div", "supercanvas-skeleton-text", cardContainer, "");
-    }
-    insertTasks(deadlineData);
-  } catch (e) {}
-}
-
 function formattedDueDate(date) {
   const monthNames = [
     "Jan",
@@ -186,17 +143,34 @@ function getCountdown(date): string {
   const now = new Date();
   const taskDate = new Date(date);
   const timeRemaining = taskDate.getTime() - now.getTime();
-
   if (timeRemaining <= 0) {
     color = "#EC2F2F"; // red
     return "OVERDUE ";
   }
-
+  let threshold;
+  switch (deadlineDate) {
+    case "days":
+      threshold = deadlineTimeValue * 24 * 60 * 60 * 1000;
+      break;
+    case "weeks":
+      threshold = deadlineTimeValue * 7 * 24 * 60 * 60 * 1000;
+      break;
+    case "months":
+      threshold = deadlineTimeValue * 30 * 24 * 60 * 60 * 1000;
+      break;
+    default:
+      threshold = 0; // Default threshold to 0 if an unsupported unit is provided
+      break;
+  }
+  if (timeRemaining > threshold) {
+    return "NA";
+  }
   const seconds = Math.floor(timeRemaining / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
   const months = Math.floor(days / 30);
+
   if (days < 1) {
     color = "#EC2F2F"; // red
   } else if (days < 3) {
@@ -226,7 +200,10 @@ function getCountdown(date): string {
 }
 
 function insertTasks(data) {
+  // To prevent duplicate cards from being injected/created by mutation observer
   if (
+    (document.querySelectorAll(".ic-DashboardCard").length > 0 &&
+      document.querySelectorAll(".supercanvas-container").length > 0) ||
     document.querySelectorAll(".supercanvas-assignment-container").length > 0
   ) {
     return;
@@ -234,7 +211,18 @@ function insertTasks(data) {
   try {
     let cards = document.querySelectorAll(".ic-DashboardCard");
     for (let i = 0; i < cards.length; i++) {
-      let cardContainer = cards[i].querySelector(".supercanvas-container");
+      let cardContainer = elementCreate(
+        "div",
+        "supercanvas-container",
+        cards[i],
+        ""
+      );
+      elementCreate(
+        "div",
+        "supercanvas-card-header-container",
+        cardContainer,
+        ""
+      );
       let count = 0;
       let course_id = parseInt(
         cards[i]
@@ -248,6 +236,12 @@ function insertTasks(data) {
           (task.plannable_type === "assignment" ||
             task.plannable_type === "quiz")
         ) {
+          let timeRemaining = getCountdown(task.plannable_date);
+          // Check if deadline is beyond user-defined cutoff
+          if (timeRemaining === "NA") return;
+
+          // Check if deadline if beyond user-defined max-displayed deadlines
+          if (count >= maxDeadlines) return;
           count++;
           let taskContainer = elementCreate(
             "div",
@@ -263,7 +257,6 @@ function insertTasks(data) {
               ? task.plannable.title.substring(0, 14) + "..."
               : task.plannable.title
           );
-          let timeRemaining = getCountdown(task.plannable_date);
           let taskCountdown = elementCreate(
             "div",
             "supercanvas-deadline-countdown",
@@ -277,6 +270,15 @@ function insertTasks(data) {
           taskName.setAttribute("title", task.plannable.title);
         }
       });
+      const deadlineHeader = cards[i].querySelector(
+        ".supercanvas-card-header-container"
+      );
+      elementCreate(
+        "h3",
+        "supercanvas-card-header",
+        deadlineHeader,
+        `Deadlines (${count})`
+      );
       if (count === 0) {
         let taskContainer = elementCreate(
           "div",
