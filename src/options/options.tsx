@@ -5,7 +5,9 @@ import "./options.css";
 const App: React.FC<{}> = () => {
   return (
     <div>
-      <h1>Nothing to see here!</h1>
+      <h1>How To Use SuperCanvas?</h1>
+      <img src={chrome.runtime.getURL("howto1.png")} />
+      <img src={chrome.runtime.getURL("howto2.png")} />
     </div>
   );
 };

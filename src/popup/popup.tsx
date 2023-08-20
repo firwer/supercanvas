@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
+  Button,
   Checkbox,
   FormControlLabel,
   FormGroup,
@@ -29,7 +30,6 @@ const App: React.FC<{}> = () => {
   const [disableFileSearch, setDisableFileSearch] = useState(true);
   const [timeValue, setTimeValue] = useState(6);
   const [date, setDate] = useState("weeks");
-
   const handleFileSearchChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -45,20 +45,28 @@ const App: React.FC<{}> = () => {
   const handleMaxDeadlinesChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    chrome.storage.local.set({ userMaxDeadlines: event.target.value });
+    if (event.target.value === "") return;
     setMaxDeadlines(parseInt(event.target.value));
+    chrome.storage.local.set({ userMaxDeadlines: event.target.value });
   };
 
   const handleTimeValueChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    chrome.storage.local.set({ userTimeValue: event.target.value });
+    if (event.target.value === "") return;
     setTimeValue(parseInt(event.target.value));
+    chrome.storage.local.set({ userTimeValue: event.target.value });
   };
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    chrome.storage.local.set({ userDate: event.target.value });
     setDate(event.target.value);
+    chrome.storage.local.set({ userDate: event.target.value });
+  };
+
+  const handleSaveChanges = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.update(tabs[0].id, { url: tabs[0].url });
+    });
   };
 
   useEffect(() => {
@@ -99,7 +107,7 @@ const App: React.FC<{}> = () => {
           <h1 className="title">Super Canvas</h1>
         </div>
         <Grid item xs={12}>
-          <FormGroup>
+          <FormGroup sx={{ gap: "5px" }}>
             <FormControlLabel
               control={
                 <Checkbox
@@ -149,6 +157,7 @@ const App: React.FC<{}> = () => {
             <div style={{ display: "flex", gap: "4px" }}>
               <p>Display up to</p>
               <TextField
+                required
                 type="number"
                 size="small"
                 sx={{ width: "70px", height: "30px" }}
@@ -160,6 +169,9 @@ const App: React.FC<{}> = () => {
               />
               <p> deadlines per course</p>
             </div>
+            <Button variant="outlined" onClick={handleSaveChanges}>
+              Reload Page
+            </Button>
           </FormGroup>
           <p>⚠️ Please refresh your canvas tab after making changes</p>
           <p>
@@ -167,6 +179,15 @@ const App: React.FC<{}> = () => {
             <a href="mailto:me@pohwp.dev">me@pohwp.dev</a>
           </p>
           <p>☕ Made by Wei Pin P.</p>
+          <Button
+            size="small"
+            sx={{ color: "white", borderRadius: "10px", fontSize: "12px" }}
+            onClick={() => chrome.runtime.openOptionsPage()}
+            className="button"
+            variant="contained"
+          >
+            How To Use?
+          </Button>
         </Grid>
       </div>
     </ThemeProvider>

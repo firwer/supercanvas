@@ -13,16 +13,16 @@
     "default_title": "Super Canvas Extension for Canvas LMS",
     "default_icon": "icon.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
+      "run_at": "document_idle",
       "matches": ["<all_urls>"],
-      "js": ["contentScript.js"],
-      "all_frames": true
+      "js": ["contentScript.js"]
     }
   ],
   "web_accessible_resources": [
