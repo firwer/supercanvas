@@ -32,7 +32,7 @@
   color: #000;
 }
 
-.itemText {
+/* .itemText {
   height: 30px;
   border-radius: 3px;
   display: flex;
@@ -49,6 +49,21 @@
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
+} */
+
+.itemText {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.itemText span {
+  display: inline-block;
+  will-change: transform;
+  transition: transform 1s linear;
+}
+
+.itemText:hover span {
+  transform: translateX(-100%);
 }
 
 .elapsedTime {

@@ -121,8 +121,8 @@ const SearchBox = ({ courseId }) => {
     }
   }, [files, searchQuery, selectedFolder]);
 
-  const handlePreviewClick = (id) => {
-    window.open(`/files/${id}`, "_blank");
+  const handlePreviewClick = (file_id) => {
+    window.open(`courses/${courseId}/files?preview=${file_id}`, "_blank");
   };
   const getImageSrc = (file: any) => {
     const doc = chrome.runtime.getURL("doc.png");
