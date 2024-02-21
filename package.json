@@ -1,6 +1,6 @@
 {
   "name": "super-canvas-extension",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "description": "Super Canvas Extension",
   "scripts": {
     "start": "webpack --watch --progress --config webpack.dev.js",

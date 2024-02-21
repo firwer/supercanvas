@@ -1,0 +1,52 @@
+.itemBox {
+  list-style: none;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #000;
+}
+
+.leftpanel {
+  display: flex;
+  align-items: center;
+  width: 300px;
+}
+
+.rightpanel {
+  display: flex;
+  flex-direction: row;
+}
+
+.elapsedTime {
+  display: flex;
+  font-size: 12px;
+  font-weight: 400;
+  background-color: #999;
+  border-radius: 10px;
+  color: white;
+  width: 100%;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  cursor: default;
+}
+
+.itemText {
+  overflow: hidden; /* Hide overflow text */
+  white-space: nowrap; /* Prevent text from wrapping to the next line */
+  display: block; /* Ensure it's a block to contain the span correctly */
+  cursor: pointer; /* Optional: Changes the cursor on hover to indicate interactivity */
+}
+
+.itemText span {
+  display: inline-block; /* Allows the span to be transformed */
+  transition: transform 2s linear; /* Smooth transition for the transform effect */
+  /* Initial transform set to translateX(0) is done inline in the React component based on state */
+}
