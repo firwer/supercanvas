@@ -35,32 +35,72 @@ const SearchBox = ({ courseId }) => {
 
   React.useEffect(() => {
     async function fetchFiles() {
-      const response = await fetch(
-        `/api/v1/courses/${courseId}/files?per_page=100`
-      );
-      if (response.ok) {
+      let nextPageUrl = `/api/v1/courses/${courseId}/files?per_page=100`;
+      let allFiles = [];
+      setIsLoading(true);
+
+      while (nextPageUrl) {
+        const response = await fetch(nextPageUrl, {
+          headers: {},
+        });
+
+        if (!response.ok) {
+          console.log("Failed to fetch:", response.statusText);
+          setIsLoading(false);
+          return;
+        }
+
         const data = await response.json();
-        const folderIds = [
-          ...new Set(
-            data.filter((file) => file.url !== "").map((file) => file.folder_id)
-          ),
-        ];
-        setFiles(data);
-        fetchFolders(folderIds);
+        allFiles = allFiles.concat(data);
+        nextPageUrl = getNextPageUrl(response.headers.get("Link"));
       }
-      setIsLoading(false);
+
+      setFiles(allFiles);
+
+      // Extract folder IDs only after collecting all files
+      const folderIds = [
+        ...new Set(
+          allFiles
+            .filter((file) => file.url !== "")
+            .map((file) => file.folder_id)
+        ),
+      ];
+      fetchFolders(folderIds);
     }
     async function fetchFolders(folderIds) {
       const response = await fetch(
-        `/api/v1/courses/${courseId}/folders?per_page=100`
+        `/api/v1/courses/${courseId}/folders?per_page=100`,
+        {
+          headers: {},
+        }
       );
+
+      if (!response.ok) {
+        console.log("Failed to fetch folders:", response.statusText);
+        setIsLoading(false);
+        return;
+      }
+
       const allFolders = await response.json();
+
+      // Filter by folders having files and not hidden, and match the IDs from fetched files
       const filteredFolders = allFolders
         .filter((folder) => folder.files_count !== 0)
-        .filter((folder) => folder.hidden_for_user !== true)
+        .filter((folder) => !folder.hidden_for_user)
         .filter((folder) => folderIds.includes(folder.id));
 
       setFolders(filteredFolders);
+      setIsLoading(false);
+    }
+
+    // Pagination retrieval for files
+    function getNextPageUrl(linkHeader) {
+      if (!linkHeader) return null;
+
+      const links = linkHeader.split(",");
+      const nextLink = links.find((link) => link.includes('rel="next"'));
+
+      return nextLink ? nextLink.split(";")[0].trim().slice(1, -1) : null; // Remove angle brackets
     }
 
     fetchFiles();
