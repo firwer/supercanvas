@@ -79,7 +79,6 @@ const FileItem = ({ file, courseId }) => {
     }
   };
   const handleMouseEnter = () => {
-    console.log("Mouse entered");
     const element = textRef.current;
     if (element) {
       const overflowWidth = element.scrollWidth - 265;
@@ -89,7 +88,6 @@ const FileItem = ({ file, courseId }) => {
   };
   const handleMouseLeave = () => {
     const element = textRef.current;
-    console.log("Mouse leaves");
     if (element) {
       // Instantly reset the text position without animation
       element.style.transition = "transform 0s linear";
